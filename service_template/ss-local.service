@@ -1,0 +1,8 @@
+[Unit]
+Description=Shadowsocks Local
+
+[Service]
+ExecStart={{ansible_env.HOME}}/bin/{{(get_url_result.dest | splitext)[0] | basename}} -c {{ansible_env.HOME}}/bin/{{(get_url_result.dest | splitext)[0] | basename}}.json
+
+[Install]
+WantedBy=default.target

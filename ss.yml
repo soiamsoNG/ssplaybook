@@ -1,0 +1,52 @@
+---
+- name: Install Shadowshocks-go local
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+
+  - name: Create Temp Directory
+    tempfile:
+      state: directory
+    register: tempfile_result
+
+  - name: Get release from github
+    get_url:
+      checksum: sha1:db8b7c21c7bdf992321b8085460042c0f43128a5
+      url: http://github.com/shadowsocks/shadowsocks-go/releases/download/1.1.5/shadowsocks-local-linux64-1.1.5.gz
+      dest: "{{ tempfile_result.path }}"
+      timeout: 60
+    register: get_url_result
+
+  - name: Gunzip release
+    command: gunzip {{get_url_result.dest}}
+
+  - name: Move Excutable to ~/bin
+    command: mv -Z {{ (get_url_result.dest | splitext)[0] }} {{ansible_env.HOME}}/bin
+
+  - name: Chmod +x to Excutable
+    file:
+      path: "{{ansible_env.HOME}}/bin/{{(get_url_result.dest | splitext)[0] | basename}}"
+      mode: "u+x"
+
+  - name: Copy config.json to ~/bin
+    copy:
+      src: config_file/config.json
+      dest: "{{ansible_env.HOME}}/bin/{{(get_url_result.dest | splitext)[0] | basename}}.json"
+
+  - name: Ensure systemd user dir exist
+    file:
+      path: "{{ansible_env.HOME}}/.config/systemd/user"
+      recurse: yes
+      state: directory
+  
+  - name: Create Service
+    template:
+      src: service_template/ss-local.service
+      dest: "{{ansible_env.HOME}}/.config/systemd/user"
+
+  - name: Enable/Start Service
+    systemd:
+      user: yes
+      name: ss-local
+      enabled: yes
+      state: started

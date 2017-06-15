@@ -1,0 +1,8 @@
+{
+    "server":"abc.com",
+    "server_port":1234,
+    "local_port":1080,
+    "password":"12345",
+    "method":"",
+    "timeout":600
+}
